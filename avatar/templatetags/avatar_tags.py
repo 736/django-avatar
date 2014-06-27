@@ -2,7 +2,6 @@ import urllib
 
 from django import template
 from django.utils.translation import ugettext as _
-from django.utils.hashcompat import md5_constructor
 from django.core.urlresolvers import reverse
 
 from django.contrib.auth.models import User
@@ -10,6 +9,8 @@ from django.contrib.auth.models import User
 from avatar.settings import (AVATAR_GRAVATAR_BACKUP, AVATAR_GRAVATAR_DEFAULT,
                              AVATAR_DEFAULT_SIZE)
 from avatar.util import get_primary_avatar, get_default_avatar_url, cache_result
+
+import hashlib
 
 register = template.Library()
 
@@ -22,11 +23,14 @@ def avatar_url(user, size=AVATAR_DEFAULT_SIZE):
         return avatar.avatar_url(size)
     else:
         if AVATAR_GRAVATAR_BACKUP:
+            gravatar_hash = hashlib.new("md5")
+            gravatar_hash.update(user.email)
+
             params = {'s': str(size)}
             if AVATAR_GRAVATAR_DEFAULT:
                 params['d'] = AVATAR_GRAVATAR_DEFAULT
-            return "http://www.gravatar.com/avatar/%s/?%s" % (
-                md5_constructor(user.email).hexdigest(),
+            return "https://secure.gravatar.com/avatar/%s/?%s" % (
+                gravatar_hashv.hexdigest(),
                 urllib.urlencode(params))
         else:
             return get_default_avatar_url()
