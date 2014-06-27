@@ -30,7 +30,7 @@ def avatar_url(user, size=AVATAR_DEFAULT_SIZE):
             if AVATAR_GRAVATAR_DEFAULT:
                 params['d'] = AVATAR_GRAVATAR_DEFAULT
             return "https://secure.gravatar.com/avatar/%s/?%s" % (
-                gravatar_hashv.hexdigest(),
+                gravatar_hash.hexdigest(),
                 urllib.urlencode(params))
         else:
             return get_default_avatar_url()
