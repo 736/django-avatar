@@ -6,7 +6,6 @@ from django.db import models
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.utils.translation import ugettext as _
-from django.utils.hashcompat import md5_constructor
 from django.utils.encoding import smart_str
 from django.db.models import signals
 
@@ -31,11 +30,15 @@ from avatar.settings import (AVATAR_STORAGE_DIR, AVATAR_RESIZE_METHOD,
                              AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES, 
                              AVATAR_USERDIRNAMES_AS_ID, AVATAR_STORAGE)
 
+import hashlib
+
 
 def avatar_file_path(instance=None, filename=None, size=None, ext=None):
     tmppath = [AVATAR_STORAGE_DIR]
     if AVATAR_HASH_USERDIRNAMES:
-        tmp = md5_constructor(instance.user.username).hexdigest()
+        username_hash = hashlib.new("ripemd160")
+        username_hash.update(instance.user.username)
+        tmp = username_hash.hexdigest()
         tmppath.extend([tmp[0], tmp[1], instance.user.username])
     elif AVATAR_USERDIRNAMES_AS_ID:
         tmppath.extend(str(instance.user.id))
@@ -54,8 +57,10 @@ def avatar_file_path(instance=None, filename=None, size=None, ext=None):
     else:
         # File doesn't exist yet
         if AVATAR_HASH_FILENAMES:
+            filename_hash = hashlib.new("ripemd160")
             (root, ext) = os.path.splitext(filename)
-            filename = md5_constructor(smart_str(filename)).hexdigest()
+            filename_hash.update(smart_str(filename))
+            filename = filename_hash.hexdigest()
             filename = filename + ext
     if size:
         tmppath.extend(['resized', str(size)])
